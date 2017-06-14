@@ -2,8 +2,6 @@
 require "test_helper"
 
 class MessageTest < ActiveSupport::TestCase
-  api_fixtures
-
   EURO = "\xe2\x82\xac".freeze # euro symbol
 
   def test_check_empty_message_fails
@@ -67,10 +65,8 @@ class MessageTest < ActiveSupport::TestCase
         # its OK to accept invalid UTF-8 as long as we return it unmodified.
         db_msg = msg.class.find(msg.id)
         assert_equal char, db_msg.title, "Database silently truncated message title"
-
       rescue ArgumentError => ex
         assert_equal ex.to_s, "invalid byte sequence in UTF-8"
-
       end
     end
   end

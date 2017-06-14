@@ -1741,7 +1741,7 @@ es:
       title: Editar su aplicación
       submit: Editar
     show:
-      title: Detalles OAuth para %{app_name}
+      title: Detalles de OAuth de %{app_name}
       key: 'Clave de Consumidor:'
       secret: 'Secreto de Consumidor:'
       url: 'URL de Token de Solicitud:'
@@ -1776,7 +1776,7 @@ es:
       name: Nombre
       required: Requerido
       url: URL de aplicación principal
-      callback_url: Callback URL
+      callback_url: URL de devolución de llamada
       support_url: URL de asistencia
       requests: 'Solicita los siguientes permisos del usuario:'
       allow_read_prefs: leer sus preferencias de usuario.

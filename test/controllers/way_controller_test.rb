@@ -2,8 +2,6 @@ require "test_helper"
 require "way_controller"
 
 class WayControllerTest < ActionController::TestCase
-  api_fixtures
-
   ##
   # test all routes which lead to this controller
   def test_routes
@@ -82,6 +80,11 @@ class WayControllerTest < ActionController::TestCase
   ##
   # test fetching multiple ways
   def test_ways
+    way1 = create(:way)
+    way2 = create(:way, :deleted)
+    way3 = create(:way)
+    way4 = create(:way)
+
     # check error when no parameter provided
     get :ways
     assert_response :bad_request
@@ -91,18 +94,18 @@ class WayControllerTest < ActionController::TestCase
     assert_response :bad_request
 
     # test a working call
-    get :ways, :ways => "1,2,4,6"
+    get :ways, :ways => "#{way1.id},#{way2.id},#{way3.id},#{way4.id}"
     assert_response :success
     assert_select "osm" do
       assert_select "way", :count => 4
-      assert_select "way[id='1'][visible='true']", :count => 1
-      assert_select "way[id='2'][visible='false']", :count => 1
-      assert_select "way[id='4'][visible='true']", :count => 1
-      assert_select "way[id='6'][visible='true']", :count => 1
+      assert_select "way[id='#{way1.id}'][visible='true']", :count => 1
+      assert_select "way[id='#{way2.id}'][visible='false']", :count => 1
+      assert_select "way[id='#{way3.id}'][visible='true']", :count => 1
+      assert_select "way[id='#{way4.id}'][visible='true']", :count => 1
     end
 
     # check error when a non-existent way is included
-    get :ways, :ways => "1,2,4,6,400"
+    get :ways, :ways => "#{way1.id},#{way2.id},#{way3.id},#{way4.id},400"
     assert_response :not_found
   end
 
@@ -406,7 +409,7 @@ class WayControllerTest < ActionController::TestCase
 
     # try and update in a closed changeset
     content update_changeset(private_way.to_xml,
-                             create(:changeset, :closed, :user => private_user))
+                             create(:changeset, :closed, :user => private_user).id)
     put :update, :id => private_way.id
     assert_require_public_data "update with closed changeset should be forbidden, when data isn't public"
 
@@ -444,7 +447,7 @@ class WayControllerTest < ActionController::TestCase
 
     # try and update in a closed changeset
     content update_changeset(way.to_xml,
-                             changesets(:normal_user_closed_change).id)
+                             create(:changeset, :closed, :user => user).id)
     put :update, :id => way.id
     assert_response :conflict, "update with closed changeset should be rejected"
 

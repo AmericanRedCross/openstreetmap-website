@@ -50,7 +50,7 @@ class SiteController < ApplicationController
     new_params[:anchor] = "map=#{zoom}/#{lat}/#{lon}"
     new_params[:anchor] += "&layers=#{params[:layers]}" if params.key? :layers
 
-    redirect_to Hash[new_params]
+    redirect_to new_params.to_unsafe_h
   end
 
   def key
@@ -69,11 +69,11 @@ class SiteController < ApplicationController
       require_user
     end
 
-    if editor == "potlatch" || editor == "potlatch2"
+    if %w[potlatch potlatch2].include?(editor)
       append_content_security_policy_directives(
-        :object_src => %w(*),
-        :plugin_types => %w(application/x-shockwave-flash),
-        :script_src => %w('unsafe-inline')
+        :object_src => %w[*],
+        :plugin_types => %w[application/x-shockwave-flash],
+        :script_src => %w['unsafe-inline']
       )
     end
 
@@ -115,14 +115,14 @@ class SiteController < ApplicationController
   def offline; end
 
   def preview
-    render :text => RichText.new(params[:format], params[:text]).to_html
+    render :html => RichText.new(params[:type], params[:text]).to_html
   end
 
   def id
     append_content_security_policy_directives(
-      :connect_src => %w(taginfo.openstreetmap.org *.mapillary.com),
-      :img_src => %w(*),
-      :script_src => %w(dev.virtualearth.net)
+      :connect_src => %w[taginfo.openstreetmap.org *.mapillary.com],
+      :img_src => %w[*],
+      :script_src => %w[dev.virtualearth.net]
     )
 
     render "id", :layout => false
@@ -158,7 +158,7 @@ class SiteController < ApplicationController
     end
 
     if anchor.present?
-      redirect_to Hash[params].merge(:anchor => anchor.join("&"))
+      redirect_to params.to_unsafe_h.merge(:anchor => anchor.join("&"))
     end
   end
 end

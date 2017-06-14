@@ -1,8 +1,6 @@
 require "test_helper"
 
 class SearchControllerTest < ActionController::TestCase
-  api_fixtures
-
   ##
   # test all routes which lead to this controller
   def test_routes
@@ -43,10 +41,14 @@ class SearchControllerTest < ActionController::TestCase
   ##
   # test searching ways
   def test_search_ways
-    [:visible_way, :invisible_way, :used_way].each do |way|
-      create(:way_tag, :way => current_ways(way), :k => "test", :v => "yes")
+    first_way = create(:way_with_nodes, :nodes_count => 2)
+    deleted_way = create(:way_with_nodes, :deleted, :nodes_count => 2)
+    third_way = create(:way_with_nodes, :nodes_count => 2)
+
+    [first_way, deleted_way, third_way].each do |way|
+      create(:way_tag, :way => way, :k => "test", :v => "yes")
     end
-    create(:way_tag, :way => current_ways(:used_way), :k => "name", :v => "Test Way")
+    create(:way_tag, :way => third_way, :k => "name", :v => "Test Way")
 
     get :search_ways, :type => "test"
     assert_response :service_unavailable
@@ -64,10 +66,14 @@ class SearchControllerTest < ActionController::TestCase
   ##
   # test searching relations
   def test_search_relations
-    [:visible_relation, :invisible_relation, :used_relation].each do |relation|
-      create(:relation_tag, :relation => current_relations(relation), :k => "test", :v => "yes")
+    first_relation = create(:relation)
+    deleted_relation = create(:relation)
+    third_relation = create(:relation)
+
+    [first_relation, deleted_relation, third_relation].each do |relation|
+      create(:relation_tag, :relation => relation, :k => "test", :v => "yes")
     end
-    create(:relation_tag, :relation => current_relations(:used_relation), :k => "name", :v => "Test Relation")
+    create(:relation_tag, :relation => third_relation, :k => "name", :v => "Test Relation")
 
     get :search_relations, :type => "test"
     assert_response :service_unavailable

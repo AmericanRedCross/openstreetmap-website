@@ -2,8 +2,6 @@
 require "test_helper"
 
 class ChangesetCommentTest < ActiveSupport::TestCase
-  fixtures :changesets, :users
-
   # validations
   def test_does_not_accept_invalid_author
     comment = create(:changeset_comment)
@@ -39,8 +37,8 @@ class ChangesetCommentTest < ActiveSupport::TestCase
   end
 
   def test_body_valid
-    ok = %W(Name vergrößern foo\nbar
-            ルシステムにも対応します 輕觸搖晃的遊戲)
+    ok = %W[Name vergrößern foo\nbar
+            ルシステムにも対応します 輕觸搖晃的遊戲]
     bad = ["foo\x00bar", "foo\x08bar", "foo\x1fbar", "foo\x7fbar",
            "foo\ufffebar", "foo\uffffbar"]
 

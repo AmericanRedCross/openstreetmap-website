@@ -491,7 +491,7 @@ sl:
           retirement_home: Dom za ostarele
           sauna: Savna
           school: Šola
-          shelter: Zaklonišče
+          shelter: Zavetišče
           shop: Trgovina
           shower: Tuš
           social_centre: Socialni center
@@ -697,12 +697,12 @@ sl:
           geyser: Gejzir
           glacier: Ledenik
           grassland: Pašnik
-          heath: Ravnina
+          heath: Pušča
           hill: Hrib
           island: Otok
           land: Otok
           marsh: Močvirje
-          moor: Pušča
+          moor: Barje
           mud: Blato
           peak: Vrh
           point: Točka
@@ -751,7 +751,7 @@ sl:
           islet: Otoček
           isolated_dwelling: Osamljena hiša
           locality: Krajevno ime
-          moor: Pušča
+          moor: Barje
           municipality: Občina
           neighbourhood: Mestna četrt
           postcode: Poštna številka
@@ -770,7 +770,7 @@ sl:
           disused: Opuščena železnica
           disused_station: Opuščena železniška postaja
           funicular: Žična vzpenjača
-          halt: Železniška postaja
+          halt: Železniško postajališče
           historic_station: Zgodovinska železniška postaja
           junction: Križišče železnic
           level_crossing: Prehod
@@ -781,7 +781,7 @@ sl:
           platform: Železniški peron
           preserved: Ohranjena železniška proga
           proposed: Predlagana železnica
-          spur: Tir
+          spur: Stranski tir
           station: Železniška postaja
           stop: Železniško postajališče
           subway: Podzemna železnica
@@ -946,7 +946,7 @@ sl:
     gps_traces_tooltip: Upravljanje sledi GPS
     user_diaries: Dnevnik
     user_diaries_tooltip: Pregled dnevnikov uporabnikov
-    edit_with: Za urejanje uporabljaj %{editor}
+    edit_with: Za urejanje uporabi %{editor}
     tag_line: Prost wiki zemljevid sveta
     intro_header: Dobrodošli na OpenStreetMap!
     intro_text: OpenStreetMap je zemljevid sveta, ki ga ustvarjajo ljudje kot ste
@@ -2105,7 +2105,7 @@ sl:
       image: sliko
       link: povezavo ali HTML
       long_link: Povezavo
-      short_link: Kratko povezavo
+      short_link: Kr. povezavo
       geo_uri: URI lokacije
       embed: HTML
       custom_dimensions: Nastavitev velikosti po meri

@@ -34,7 +34,7 @@ class ChangesetController < ApplicationController
     # Subscribe user to changeset comments
     cs.subscribers << @user
 
-    render :text => cs.id.to_s, :content_type => "text/plain"
+    render :plain => cs.id.to_s
   end
 
   ##
@@ -43,7 +43,7 @@ class ChangesetController < ApplicationController
   def read
     changeset = Changeset.find(params[:id])
 
-    render :text => changeset.to_xml(params[:include_discussion].presence).to_s, :content_type => "text/xml"
+    render :xml => changeset.to_xml(params[:include_discussion].presence).to_s
   end
 
   ##
@@ -61,7 +61,7 @@ class ChangesetController < ApplicationController
     changeset.set_closed_time_now
 
     changeset.save!
-    render :text => ""
+    head :ok
   end
 
   ##
@@ -104,7 +104,7 @@ class ChangesetController < ApplicationController
     # save the larger bounding box and return the changeset, which
     # will include the bigger bounding box.
     cs.save!
-    render :text => cs.to_xml.to_s, :content_type => "text/xml"
+    render :xml => cs.to_xml.to_s
   end
 
   ##
@@ -132,7 +132,7 @@ class ChangesetController < ApplicationController
     diff_reader = DiffReader.new(request.raw_post, changeset)
     Changeset.transaction do
       result = diff_reader.commit
-      render :text => result.to_s, :content_type => "text/xml"
+      render :xml => result.to_s
     end
   end
 
@@ -197,7 +197,7 @@ class ChangesetController < ApplicationController
         end
     end
 
-    render :text => result.to_s, :content_type => "text/xml"
+    render :xml => result.to_s
   end
 
   ##
@@ -224,7 +224,7 @@ class ChangesetController < ApplicationController
       results.root << cs.to_xml_node
     end
 
-    render :text => results.to_s, :content_type => "text/xml"
+    render :xml => results.to_s
   end
 
   ##
@@ -244,52 +244,54 @@ class ChangesetController < ApplicationController
 
     check_changeset_consistency(changeset, @user)
     changeset.update_from(new_changeset, @user)
-    render :text => changeset.to_xml, :mime_type => "text/xml"
+    render :xml => changeset.to_xml.to_s
   end
 
   ##
-  # list edits (open changesets) in reverse chronological order
+  # list non-empty changesets in reverse chronological order
   def list
-    if request.format == :atom && params[:max_id]
-      redirect_to url_for(params.merge(:max_id => nil)), :status => :moved_permanently
+    @params = params.permit(:display_name, :bbox, :friends, :nearby, :max_id, :list)
+
+    if request.format == :atom && @params[:max_id]
+      redirect_to url_for(@params.merge(:max_id => nil)), :status => :moved_permanently
       return
     end
 
-    if params[:display_name]
-      user = User.find_by(:display_name => params[:display_name])
+    if @params[:display_name]
+      user = User.find_by(:display_name => @params[:display_name])
       if !user || !user.active?
-        render_unknown_user params[:display_name]
+        render_unknown_user @params[:display_name]
         return
       end
     end
 
-    if (params[:friends] || params[:nearby]) && !@user
+    if (@params[:friends] || @params[:nearby]) && !@user
       require_user
       return
     end
 
-    if request.format == :html && !params[:list]
+    if request.format == :html && !@params[:list]
       require_oauth
       render :action => :history, :layout => map_layout
     else
       changesets = conditions_nonempty(Changeset.all)
 
-      if params[:display_name]
+      if @params[:display_name]
         changesets = if user.data_public? || user == @user
                        changesets.where(:user_id => user.id)
                      else
                        changesets.where("false")
                      end
-      elsif params[:bbox]
+      elsif @params[:bbox]
         changesets = conditions_bbox(changesets, BoundingBox.from_bbox_params(params))
-      elsif params[:friends] && @user
+      elsif @params[:friends] && @user
         changesets = changesets.where(:user_id => @user.friend_users.identifiable)
-      elsif params[:nearby] && @user
+      elsif @params[:nearby] && @user
         changesets = changesets.where(:user_id => @user.nearby)
       end
 
-      if params[:max_id]
-        changesets = changesets.where("changesets.id <= ?", params[:max_id])
+      if @params[:max_id]
+        changesets = changesets.where("changesets.id <= ?", @params[:max_id])
       end
 
       @edits = changesets.order("changesets.id DESC").limit(20).preload(:user, :changeset_tags, :comments)
@@ -335,7 +337,7 @@ class ChangesetController < ApplicationController
     changeset.subscribers << @user unless changeset.subscribers.exists?(@user.id)
 
     # Return a copy of the updated changeset
-    render :text => changeset.to_xml.to_s, :content_type => "text/xml"
+    render :xml => changeset.to_xml.to_s
   end
 
   ##
@@ -356,7 +358,7 @@ class ChangesetController < ApplicationController
     changeset.subscribers << @user
 
     # Return a copy of the updated changeset
-    render :text => changeset.to_xml.to_s, :content_type => "text/xml"
+    render :xml => changeset.to_xml.to_s
   end
 
   ##
@@ -377,7 +379,7 @@ class ChangesetController < ApplicationController
     changeset.subscribers.delete(@user)
 
     # Return a copy of the updated changeset
-    render :text => changeset.to_xml.to_s, :content_type => "text/xml"
+    render :xml => changeset.to_xml.to_s
   end
 
   ##
@@ -396,7 +398,7 @@ class ChangesetController < ApplicationController
     comment.update(:visible => false)
 
     # Return a copy of the updated changeset
-    render :text => comment.changeset.to_xml.to_s, :content_type => "text/xml"
+    render :xml => comment.changeset.to_xml.to_s
   end
 
   ##
@@ -415,7 +417,7 @@ class ChangesetController < ApplicationController
     comment.update(:visible => true)
 
     # Return a copy of the updated changeset
-    render :text => comment.changeset.to_xml.to_s, :content_type => "text/xml"
+    render :xml => comment.changeset.to_xml.to_s
   end
 
   ##
@@ -440,7 +442,7 @@ class ChangesetController < ApplicationController
       format.rss
     end
   rescue OSM::APIBadUserInput
-    render :text => "", :status => :bad_request
+    head :bad_request
   end
 
   private

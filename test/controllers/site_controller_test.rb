@@ -1,8 +1,6 @@
 require "test_helper"
 
 class SiteControllerTest < ActionController::TestCase
-  api_fixtures
-
   ##
   # setup oauth keys
   def setup
@@ -75,8 +73,8 @@ class SiteControllerTest < ActionController::TestCase
       { :controller => "site", :action => "permalink", :code => "shortcode" }
     )
     assert_routing(
-      { :path => "/preview/formatname", :method => :post },
-      { :controller => "site", :action => "preview", :format => "formatname" }
+      { :path => "/preview/typename", :method => :post },
+      { :controller => "site", :action => "preview", :type => "typename" }
     )
     assert_routing(
       { :path => "/id", :method => :get },
@@ -254,7 +252,9 @@ class SiteControllerTest < ActionController::TestCase
   # Test editing a specific way
   def test_edit_with_way
     user = create(:user)
-    way  = current_ways(:visible_way)
+    node = create(:node, :lat => 3, :lon => 3)
+    way  = create(:way)
+    create(:way_node, :node => node, :way => way)
 
     get :edit, { :way => way.id }, { :user => user }
     assert_response :success
@@ -365,13 +365,13 @@ class SiteControllerTest < ActionController::TestCase
 
   # Test the rich text preview
   def test_preview
-    xhr :post, :preview, :format => "html"
+    xhr :post, :preview, :type => "html"
     assert_response :success
 
-    xhr :post, :preview, :format => "markdown"
+    xhr :post, :preview, :type => "markdown"
     assert_response :success
 
-    xhr :post, :preview, :format => "text"
+    xhr :post, :preview, :type => "text"
     assert_response :success
   end
 

@@ -81,7 +81,7 @@ class UserController < ApplicationController
         @user.terms_agreed = Time.now.getutc
         @user.terms_seen = true
 
-        if @user.auth_uid.nil? || @user.auth_uid.empty?
+        if @user.auth_uid.blank?
           @user.auth_provider = nil
           @user.auth_uid = nil
         end
@@ -194,7 +194,7 @@ class UserController < ApplicationController
         redirect_to :action => "lost_password"
       end
     else
-      render :text => "", :status => :bad_request
+      head :bad_request
     end
   end
 
@@ -375,7 +375,7 @@ class UserController < ApplicationController
     if @this_user.visible?
       render :action => :api_read, :content_type => "text/xml"
     else
-      render :text => "", :status => :gone
+      head :gone
     end
   end
 
@@ -389,7 +389,7 @@ class UserController < ApplicationController
     @user.traces.reload.each do |trace|
       doc.root << trace.to_xml_node
     end
-    render :text => doc.to_s, :content_type => "text/xml"
+    render :xml => doc.to_s
   end
 
   def view
@@ -437,7 +437,7 @@ class UserController < ApplicationController
     if @friend
       if request.post?
         if @user.is_friends_with?(@friend)
-          Friend.delete_all "user_id = #{@user.id} AND friend_user_id = #{@friend.id}"
+          Friend.where(:user_id => @user.id, :friend_user_id => @friend.id).delete_all
           flash[:notice] = t "user.remove_friend.success", :name => @friend.display_name
         else
           flash[:error] = t "user.remove_friend.not_a_friend", :name => @friend.display_name
@@ -480,9 +480,11 @@ class UserController < ApplicationController
 
       redirect_to url_for(:status => params[:status], :ip => params[:ip], :page => params[:page])
     else
+      @params = params.permit(:status, :ip)
+
       conditions = {}
-      conditions[:status] = params[:status] if params[:status]
-      conditions[:creation_ip] = params[:ip] if params[:ip]
+      conditions[:status] = @params[:status] if @params[:status]
+      conditions[:creation_ip] = @params[:ip] if @params[:ip]
 
       @user_pages, @users = paginate(:users,
                                      :conditions => conditions,
@@ -494,7 +496,7 @@ class UserController < ApplicationController
   ##
   # omniauth success callback
   def auth_success
-    auth_info = env["omniauth.auth"]
+    auth_info = request.env["omniauth.auth"]
 
     provider = auth_info[:provider]
     uid = auth_info[:uid]
@@ -543,7 +545,7 @@ class UserController < ApplicationController
         when "pending" then
           unconfirmed_login(user)
         when "active", "confirmed" then
-          successful_login(user, env["omniauth.params"]["referer"])
+          successful_login(user, request.env["omniauth.params"]["referer"])
         when "suspended" then
           failed_login t("user.login.account is suspended", :webmaster => "mailto:#{SUPPORT_EMAIL}")
         else
@@ -723,8 +725,8 @@ class UserController < ApplicationController
             # Ignore errors sending email
           end
         else
-          @user.errors.set(:new_email, @user.errors.get(:email))
-          @user.errors.set(:email, [])
+          @user.errors.add(:new_email, @user.errors[:email])
+          @user.errors.add(:email, [])
         end
 
         user.restore_email!
@@ -752,9 +754,7 @@ class UserController < ApplicationController
   ##
   # require that the user in the URL is the logged in user
   def require_self
-    if params[:display_name] != @user.display_name
-      render :text => "", :status => :forbidden
-    end
+    head :forbidden if params[:display_name] != @user.display_name
   end
 
   ##
